@@ -15,7 +15,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.576.0",
-    "mongodb": "^7.1.0",
+    "mongodb": "^6.13.0",
     "mongoose": "^9.2.3",
     "next": "16.1.6",
     "next-auth": "^4.24.13",
