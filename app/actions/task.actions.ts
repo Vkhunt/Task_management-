@@ -7,7 +7,6 @@
  */
 "use server";
 
-import { revalidatePath } from "next/cache";
 import connectToDatabase from "@/lib/mongodb";
 import Task from "@/models/Task";
 import type {
@@ -97,7 +96,6 @@ export async function createTask(data: CreateTaskInput): Promise<ITask | null> {
       ...data,
       userEmail: session.user.email,
     });
-    revalidatePath("/");
 
     return {
       id: newTask._id.toString(),
@@ -134,9 +132,6 @@ export async function updateTask(
 
     if (!updatedTask) return null;
 
-    revalidatePath("/");
-    revalidatePath(`/tasks/${id}`);
-
     return {
       id: updatedTask._id.toString(),
       title: updatedTask.title,
@@ -167,7 +162,6 @@ export async function deleteTask(id: string): Promise<boolean> {
     });
 
     if (result) {
-      revalidatePath("/");
       return true;
     }
     return false;

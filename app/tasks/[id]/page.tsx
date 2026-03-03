@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -31,6 +31,11 @@ import {
 import type { Task } from "@/types/task";
 import type { TaskFormValues } from "@/lib/validations";
 import TaskForm from "@/components/TaskForm";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  updateTask as updateTaskAction,
+  deleteTask as deleteTaskAction,
+} from "@/store/features/tasksSlice";
 
 interface TaskDetailPageProps {
   params: Promise<{ id: string }>;
@@ -65,19 +70,60 @@ const priorityConfig = {
 
 export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const router = useRouter();
-  const [task, setTask] = useState<Task | null | undefined>(undefined);
-  const [id, setId] = useState<string>("");
+  const dispatch = useAppDispatch();
+
+  // Unwrap params (Next.js 15 async params)
+  const { id } = use(params);
+
+  // 1. Try to get task instantly from Redux store — zero latency
+  const taskFromStore = useAppSelector((state) =>
+    state.tasks.items.find((t) => t.id === id),
+  );
+
+  // 2. Local state — starts with store data (instant) or undefined (loading)
+  const [task, setTask] = useState<Task | null | undefined>(
+    taskFromStore ?? undefined,
+  );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    params.then(async ({ id }) => {
-      setId(id);
-      const found = await getTaskById(id);
-      setTask(found);
-    });
-  }, [params]);
+    if (taskFromStore) {
+      // Already have it from store — display immediately, no spinner
+      setTask(taskFromStore);
+    } else {
+      // Fallback: task not in store (e.g. direct URL navigation), fetch from DB
+      getTaskById(id).then((found) => setTask(found));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // Keep local task in sync if Redux store updates (e.g. drag-drop from another tab)
+  useEffect(() => {
+    if (taskFromStore) {
+      setTask(taskFromStore);
+    }
+  }, [taskFromStore]);
 
   async function handleSubmit(values: TaskFormValues) {
+    if (!task) return;
+
+    const updatedTask: Task = {
+      ...task,
+      title: values.title,
+      description: values.description || "",
+      status: values.status,
+      priority: values.priority,
+      dueDate: values.dueDate || undefined,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Optimistic update in Redux — instant UI feedback
+    dispatch(updateTaskAction(updatedTask));
+
+    // Navigate away immediately — no waiting for server
+    router.push("/");
+
+    // Background server sync
     updateTask(id, {
       title: values.title,
       description: values.description,
@@ -85,7 +131,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       priority: values.priority,
       dueDate: values.dueDate || undefined,
     });
-    router.push("/");
   }
 
   function handleDeleteClick() {
@@ -93,19 +138,38 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   }
 
   function confirmDelete() {
-    deleteTask(id);
+    // Optimistic remove from Redux — card disappears instantly on dashboard
+    dispatch(deleteTaskAction(id));
     router.push("/");
+    // Background server sync
+    deleteTask(id);
   }
 
   function cancelDelete() {
     setShowDeleteConfirm(false);
   }
 
-  // Loading
+  // Loading — only shown for direct URL access when task isn't in Redux store
   if (task === undefined) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-6 w-6 text-violet-400 animate-spin" />
+      <div className="max-w-2xl mx-auto space-y-8 animate-pulse">
+        <div className="h-4 w-32 bg-slate-800 rounded-full" />
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+          <div className="h-5 w-20 bg-slate-800 rounded-full" />
+          <div className="h-7 w-3/4 bg-slate-800 rounded-lg" />
+          <div className="flex gap-4">
+            <div className="h-4 w-28 bg-slate-800 rounded-full" />
+            <div className="h-4 w-28 bg-slate-800 rounded-full" />
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8 space-y-5">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-3 w-16 bg-slate-800 rounded-full" />
+              <div className="h-10 bg-slate-800 rounded-xl" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -179,7 +243,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
               )}
             >
               <StatusIcon className="h-3 w-3" />
-              {STATUS_LABELS[task.status]}
+              {STATUS_LABELS[task.status] ?? task.status}
             </span>
             <h1 className="text-xl font-bold text-white leading-snug">
               {task.title}
@@ -228,7 +292,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
           <h2 className="text-lg font-semibold text-white">Edit Task</h2>
         </div>
         <TaskForm
-          key={task.updatedAt}
+          key={task.id}
           defaultValues={{
             title: task.title,
             description: task.description,
