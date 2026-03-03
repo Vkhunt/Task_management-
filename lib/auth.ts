@@ -1,12 +1,12 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./mongodb-client";
 
 export const authOptions: NextAuthOptions = {
-  // Pass the raw MongoDB client promise to the NextAuth MongoDB Adapter
-  // so it can save users and sessions directly into our database.
-  // We use `as any` because of the version mismatch between mongodb v6 / v7, which is fine structurally.
+  // MongoDB adapter still used for persisting user accounts (OAuth sign-in),
+  // but session data is stored in a JWT cookie — zero DB call per request.
   adapter: MongoDBAdapter(clientPromise as any),
   providers: [
     GoogleProvider({
@@ -15,12 +15,38 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    // We use a database session strategy so user sessions are stored in MongoDB.
-    strategy: "database",
+    // JWT strategy: session is a signed cookie — no DB lookup on every request.
+    // This eliminates one MongoDB round-trip per Server Action call.
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    // This callback is triggered whenever a session is checked
-    async session({ session }) {
+    // Embed user info into the JWT token at sign-in time
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: {
+        email?: string | null;
+        name?: string | null;
+        image?: string | null;
+      };
+    }) {
+      if (user) {
+        token.email = user.email;
+        token.name = user.name;
+        token.picture = user.image;
+      }
+      return token;
+    },
+    // Expose token data to the session object (read by getServerSession)
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (session.user) {
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.image = token.picture as string;
+      }
       return session;
     },
   },
