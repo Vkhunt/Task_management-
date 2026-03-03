@@ -24,6 +24,7 @@ import { deleteTask, updateTask } from "@/app/actions/task.actions";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   updateTask as updateTaskAction,
+  deleteTask as deleteTaskAction,
   selectColumns,
 } from "@/store/features/tasksSlice";
 
@@ -130,6 +131,9 @@ const TaskCard = ({
   function confirmDelete(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    // Dispatch optimistic deletion
+    dispatch(deleteTaskAction(task.id));
+    // Trigger server deletion implicitly allowing `router.push('/tasks/new')` UI refreshes independently
     deleteTask(task.id);
     onDelete?.();
     setShowDeleteConfirm(false);

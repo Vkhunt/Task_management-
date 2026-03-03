@@ -6,18 +6,42 @@ import Link from "next/link";
 import { createTask } from "@/app/actions/task.actions";
 import type { TaskFormValues } from "@/lib/validations";
 import TaskForm from "@/components/TaskForm";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import type { TaskStatus } from "@/types/task";
+import { useAppDispatch } from "@/store/hooks";
+import { addTask } from "@/store/features/tasksSlice";
 
 function NewTaskForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusParam = searchParams.get("status") as TaskStatus | null;
   const defaultStatus: TaskStatus =
     statusParam && statusParam.trim().length > 0 ? statusParam : "todo";
 
   async function handleSubmit(values: TaskFormValues) {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    // Optimistically update tasks manually without generating actual ID so it's temporary
+    const optimisticTask = {
+      id: `temp-${Date.now()}`,
+      title: values.title,
+      description: values.description || "",
+      status: values.status,
+      priority: values.priority,
+      dueDate: values.dueDate || undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      userEmail: "optimistic",
+    };
+
+    // Add locally to UI
+    dispatch(addTask(optimisticTask));
+
+    // Non-blocking background sync, routing user away seamlessly
     createTask({
       title: values.title,
       description: values.description,
