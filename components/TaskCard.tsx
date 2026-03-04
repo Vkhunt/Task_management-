@@ -381,8 +381,7 @@ const TaskCard = ({
                   Delete Task
                 </h3>
                 <p className="mt-1.5 text-sm text-slate-400">
-                  Are you sure you want to delete this task? This action cannot
-                  be undone.
+                  Are you sure you want to delete this task?
                 </p>
               </div>
             </div>
