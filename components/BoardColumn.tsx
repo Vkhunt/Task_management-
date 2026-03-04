@@ -289,8 +289,7 @@ const KanbanColumnInner = ({
                   <span className="font-medium text-white">
                     &ldquo;{label}&rdquo;
                   </span>
-                  ? Tasks in this column will remain but won&apos;t show on the
-                  board.
+                  
                 </p>
               </div>
             </div>
