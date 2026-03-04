@@ -64,6 +64,16 @@ const tasksSlice = createSlice({
     deleteTask: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((t) => t.id !== action.payload);
     },
+    // Swap a temp-id optimistic task with the real server task once create resolves
+    replaceTask: (
+      state,
+      action: PayloadAction<{ oldId: string; newTask: Task }>,
+    ) => {
+      const index = state.items.findIndex((t) => t.id === action.payload.oldId);
+      if (index !== -1) {
+        state.items[index] = action.payload.newTask;
+      }
+    },
     setFilters: (state, action: PayloadAction<TaskFilters>) => {
       state.filters = action.payload;
     },
@@ -107,6 +117,7 @@ export const {
   updateTask,
   updateTaskStatus,
   deleteTask,
+  replaceTask,
   setFilters,
   setSortConfig,
   addColumn,

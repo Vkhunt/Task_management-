@@ -127,7 +127,7 @@ export async function updateTask(
     const updatedTask = await Task.findOneAndUpdate(
       { _id: id, userEmail: session.user.email },
       data,
-      { returnDocument: "after" },
+      { new: true },
     ).lean();
 
     if (!updatedTask) return null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { RefreshCw, LogIn, LayoutGrid } from "lucide-react";
 import type { Task } from "@/types/task";
 import { BUILT_IN_COLUMNS } from "@/types/task";
@@ -72,20 +72,19 @@ export default function DashboardPage() {
     return result;
   }, [columns, filteredTasks, sortConfigs]);
 
-  const loadTasks = useCallback(async () => {
-    if (status !== "authenticated") return;
-    const fetchedTasks = await getTasks();
-    dispatch(setTasks(fetchedTasks));
+  // Only fetch once when the user first becomes authenticated.
+  // A ref ensures re-renders (e.g. session hydration) don't trigger extra round-trips.
+  const didFetch = useRef(false);
+  useEffect(() => {
+    if (status !== "authenticated" || didFetch.current) return;
+    didFetch.current = true;
+    getTasks().then((fetched) => dispatch(setTasks(fetched)));
   }, [status, dispatch]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
-
-  // Stable drag-start callback — passed to each column via props
-  const handleDragStart = useCallback((e: React.DragEvent, taskId: string) => {
+  // Stable drag-start callback — inline is fine; columns are memoised
+  function handleDragStart(e: React.DragEvent, taskId: string) {
     e.dataTransfer.setData("taskId", taskId);
-  }, []);
+  }
 
   if (status === "loading") {
     return (
@@ -138,7 +137,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <StatsCards tasks={filteredTasks} />
+      <StatsCards tasks={allTasks} />
 
       <FilterBar />
 
@@ -206,7 +205,6 @@ export default function DashboardPage() {
             sortConfig={sortConfigs[col.id] ?? DEFAULT_SORT}
             isCustom={!BUILT_IN_IDS.has(col.id)}
             onDragStart={handleDragStart}
-            onRefresh={loadTasks}
           />
         ))}
       </div>

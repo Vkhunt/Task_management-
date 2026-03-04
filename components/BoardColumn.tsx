@@ -29,7 +29,6 @@ interface KanbanColumnProps {
   sortConfig: ColumnSort;
   isCustom: boolean;
   onDragStart: (e: React.DragEvent, taskId: string) => void;
-  onRefresh: () => void;
 }
 
 const SORT_KEYS: SortKey[] = ["dueDate", "priority", "title"];
@@ -42,7 +41,6 @@ const KanbanColumnInner = ({
   sortConfig,
   isCustom,
   onDragStart,
-  onRefresh,
 }: KanbanColumnProps) => {
   const dispatch = useAppDispatch();
   // Read ALL tasks so we can find a dragged task from any column
@@ -249,7 +247,6 @@ const KanbanColumnInner = ({
           <TaskCard
             key={task.id}
             task={task}
-            onDelete={onRefresh}
             onDragStart={handleColumnDragStart}
             onDragEnd={handleColumnDragEnd}
           />

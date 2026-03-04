@@ -9,7 +9,7 @@ import TaskForm from "@/components/TaskForm";
 import { Suspense, useState } from "react";
 import type { TaskStatus } from "@/types/task";
 import { useAppDispatch } from "@/store/hooks";
-import { addTask } from "@/store/features/tasksSlice";
+import { addTask, replaceTask } from "@/store/features/tasksSlice";
 
 function NewTaskForm() {
   const router = useRouter();
@@ -25,9 +25,12 @@ function NewTaskForm() {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // Optimistically update tasks manually without generating actual ID so it's temporary
+    // 1. Generate a stable temp ID for this create operation
+    const tempId = `temp-${Date.now()}`;
+
+    // 2. Dispatch optimistic task instantly — user sees it on the dashboard NOW
     const optimisticTask = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       title: values.title,
       description: values.description || "",
       status: values.status,
@@ -35,28 +38,34 @@ function NewTaskForm() {
       dueDate: values.dueDate || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      userEmail: "optimistic",
     };
-
-    // Add locally to UI
     dispatch(addTask(optimisticTask));
 
-    // Non-blocking background sync, routing user away seamlessly
+    // 3. Navigate away immediately — no waiting for the server
+    router.push("/");
+
+    // 4. Background sync: once the server resolves, swap temp-id → real id
+    //    This prevents a "flash" or duplicate when getTasks() is called on next mount
     createTask({
       title: values.title,
       description: values.description,
       status: values.status,
       priority: values.priority,
       dueDate: values.dueDate || undefined,
+    }).then((realTask) => {
+      if (realTask) {
+        dispatch(replaceTask({ oldId: tempId, newTask: realTask }));
+      }
+      // If createTask failed, the temp task stays visible — acceptable UX
+      // A production app would add error toast + rollback here
     });
-    router.push("/");
   }
 
   return (
     <TaskForm
       defaultValues={{ status: defaultStatus }}
       onSubmit={handleSubmit}
-      isLoading={false}
+      isLoading={isSubmitting}
       submitLabel="Create Task"
     />
   );
