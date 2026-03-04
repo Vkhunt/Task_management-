@@ -74,6 +74,10 @@ const tasksSlice = createSlice({
         state.items[index] = action.payload.newTask;
       }
     },
+    // Optimistically remove all tasks belonging to a deleted column
+    removeTasksByStatus: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((t) => t.status !== action.payload);
+    },
     setFilters: (state, action: PayloadAction<TaskFilters>) => {
       state.filters = action.payload;
     },
@@ -118,6 +122,7 @@ export const {
   updateTaskStatus,
   deleteTask,
   replaceTask,
+  removeTasksByStatus,
   setFilters,
   setSortConfig,
   addColumn,

@@ -170,3 +170,23 @@ export async function deleteTask(id: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function deleteTasksByStatus(status: string): Promise<number> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) throw new Error("Unauthorized");
+
+    await connectToDatabase();
+
+    // Bulk-delete all tasks in the given column that belong to the current user
+    const result = await Task.deleteMany({
+      status,
+      userEmail: session.user.email,
+    });
+
+    return result.deletedCount ?? 0;
+  } catch (error) {
+    console.error("Failed to delete tasks by status:", error);
+    return 0;
+  }
+}

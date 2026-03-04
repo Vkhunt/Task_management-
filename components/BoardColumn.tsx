@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setSortConfig,
   removeColumn,
+  removeTasksByStatus,
   updateTask as updateTaskAction,
 } from "@/store/features/tasksSlice";
 import type { SortKey, ColumnSort } from "@/store/features/tasksSlice";
@@ -124,8 +125,15 @@ const KanbanColumnInner = ({
   }, []);
 
   const confirmRemove = useCallback(() => {
+    // 1. Optimistically clear all tasks in this column from the UI
+    dispatch(removeTasksByStatus(id));
+    // 2. Remove the column itself from the UI
     dispatch(removeColumn(id));
     setShowRemoveConfirm(false);
+    // 3. Background DB sync — permanently delete tasks from MongoDB
+    import("@/app/actions/task.actions").then(({ deleteTasksByStatus }) => {
+      deleteTasksByStatus(id);
+    });
   }, [dispatch, id]);
 
   const cancelRemove = useCallback(() => {
