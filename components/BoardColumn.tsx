@@ -30,6 +30,7 @@ interface KanbanColumnProps {
   sortConfig: ColumnSort;
   isCustom: boolean;
   onDragStart: (e: React.DragEvent, taskId: string) => void;
+  projectId?: string;
 }
 
 const SORT_KEYS: SortKey[] = ["dueDate", "priority", "title"];
@@ -42,6 +43,7 @@ const KanbanColumnInner = ({
   sortConfig,
   isCustom,
   onDragStart,
+  projectId,
 }: KanbanColumnProps) => {
   const dispatch = useAppDispatch();
   const allTasks = useAppSelector((state) => state.tasks.items);
@@ -222,7 +224,7 @@ const KanbanColumnInner = ({
       </div>
 
       <Link
-        href={`/tasks/new?status=${id}`}
+        href={`/tasks/new?status=${id}${projectId ? `&projectId=${projectId}` : ""}`}
         className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-700/60 bg-card/20 px-3 py-2 text-xs font-medium text-muted-foreground hover:border-violet-500 hover:text-violet-400 hover:bg-violet-950/20 hover:shadow-sm transition-all"
       >
         <Plus className="h-3.5 w-3.5 shrink-0" />

@@ -18,8 +18,12 @@ function NewTaskForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const statusParam = searchParams.get("status") as TaskStatus | null;
+  const projectIdParam = searchParams.get("projectId") ?? undefined;
   const defaultStatus: TaskStatus =
     statusParam && statusParam.trim().length > 0 ? statusParam : "todo";
+
+  const backHref = projectIdParam ? `/projects/${projectIdParam}` : "/";
+  const backLabel = projectIdParam ? "Back to Project" : "Back to Dashboard";
 
   async function handleSubmit(values: TaskFormValues) {
     if (isSubmitting) return;
@@ -35,12 +39,14 @@ function NewTaskForm() {
       priority: values.priority,
       dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
+      projectId: projectIdParam,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     dispatch(addTask(optimisticTask));
 
-    router.push("/");
+    // Redirect back to project board or homepage
+    router.push(projectIdParam ? `/projects/${projectIdParam}` : "/");
 
     createTask({
       title: values.title,
@@ -49,6 +55,7 @@ function NewTaskForm() {
       priority: values.priority,
       dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
+      projectId: projectIdParam,
     }).then((realTask) => {
       if (realTask) {
         dispatch(replaceTask({ oldId: tempId, newTask: realTask }));
@@ -57,24 +64,13 @@ function NewTaskForm() {
   }
 
   return (
-    <TaskForm
-      defaultValues={{ status: defaultStatus }}
-      onSubmit={handleSubmit}
-      isLoading={isSubmitting}
-      submitLabel="Create Task"
-    />
-  );
-}
-
-export default function NewTaskPage() {
-  return (
     <div className="max-w-2xl mx-auto space-y-8">
       <Link
-        href="/"
+        href={backHref}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Dashboard
+        {backLabel}
       </Link>
 
       <div>
@@ -85,12 +81,23 @@ export default function NewTaskPage() {
       </div>
 
       <div className="rounded-2xl border border-card-border bg-card p-6 sm:p-8">
-        <Suspense
-          fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}
-        >
-          <NewTaskForm />
-        </Suspense>
+        <TaskForm
+          defaultValues={{ status: defaultStatus }}
+          onSubmit={handleSubmit}
+          isLoading={isSubmitting}
+          submitLabel="Create Task"
+        />
       </div>
     </div>
+  );
+}
+
+export default function NewTaskPage() {
+  return (
+    <Suspense
+      fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}
+    >
+      <NewTaskForm />
+    </Suspense>
   );
 }

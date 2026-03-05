@@ -4,6 +4,9 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import AuthProvider from "@/components/AuthProvider";
 import { StoreProvider } from "@/components/StoreProvider";
+import StoreInitializer from "@/components/StoreInitializer";
+import { getTasks } from "@/app/actions/task.actions";
+import { getProjects } from "@/app/actions/project.actions";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
@@ -12,11 +15,14 @@ export const metadata: Metadata = {
   description: "A modern, beautiful task management application",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch tasks and projects completely on the server for instant UI render
+  const tasks = await getTasks();
+  const projects = await getProjects();
   return (
     <html lang="en" className="dark">
       <body
@@ -24,6 +30,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <StoreProvider>
+            <StoreInitializer tasks={tasks} projects={projects} />
             <div className="fixed inset-0 z-[-1] bg-slate-950">
               <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-violet-900/10 blur-[120px]" />
               <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-indigo-900/10 blur-[120px]" />

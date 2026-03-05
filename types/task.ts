@@ -17,9 +17,24 @@ export interface Task {
   priority: TaskPriority;
   dueDate: string; // ISO date string YYYY-MM-DD (required)
   assignedTo?: string;
+  projectId?: string;
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
 }
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type CreateProjectInput = Pick<
+  Project,
+  "name" | "description" | "color"
+>;
 
 export type CreateTaskInput = Omit<Task, "id" | "createdAt" | "updatedAt">;
 export type UpdateTaskInput = Partial<CreateTaskInput>;

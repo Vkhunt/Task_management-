@@ -8,6 +8,7 @@ export interface ITask extends Document {
   priority: TaskPriority;
   dueDate?: string;
   assignedTo?: string;
+  projectId?: string;
   userEmail: string;
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +32,7 @@ const TaskSchema = new Schema<ITask>(
     },
     dueDate: { type: String, required: false },
     assignedTo: { type: String, required: false },
+    projectId: { type: String, required: false },
   },
   {
     timestamps: true,

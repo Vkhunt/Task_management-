@@ -86,6 +86,9 @@ const tasksSlice = createSlice({
           : t,
       );
     },
+    removeTasksByProjectId: (state, action: PayloadAction<string>) => {
+      state.items = state.items.filter((t) => t.projectId !== action.payload);
+    },
     setFilters: (state, action: PayloadAction<TaskFilters>) => {
       state.filters = action.payload;
     },
@@ -129,6 +132,7 @@ export const {
   replaceTask,
   removeTasksByStatus,
   moveTasksToStatus,
+  removeTasksByProjectId,
   setFilters,
   setSortConfig,
   addColumn,

@@ -9,12 +9,16 @@ import {
   LogOut,
   LogIn,
   ChevronDown,
+  Folder,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSession, signIn, signOut } from "next-auth/react";
 import Image from "next/image";
 
-const navItems = [{ href: "/", label: "Dashboard", icon: LayoutDashboard }];
+const navItems = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/projects", label: "Projects", icon: Folder },
+];
 
 export default function Navbar() {
   const pathname = usePathname();

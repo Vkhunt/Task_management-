@@ -7,12 +7,11 @@ import type {
   CreateTaskInput,
   UpdateTaskInput,
 } from "@/types/task";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 
 export async function getTasks(): Promise<ITask[]> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) return [];
 
     await connectToDatabase();
@@ -29,6 +28,7 @@ export async function getTasks(): Promise<ITask[]> {
       priority: task.priority,
       dueDate: task.dueDate || undefined,
       assignedTo: task.assignedTo || undefined,
+      projectId: task.projectId || undefined,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
     })) as ITask[];
@@ -40,7 +40,7 @@ export async function getTasks(): Promise<ITask[]> {
 
 export async function getTaskById(id: string): Promise<ITask | null> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) return null;
 
     await connectToDatabase();
@@ -60,6 +60,7 @@ export async function getTaskById(id: string): Promise<ITask | null> {
       priority: task.priority,
       dueDate: task.dueDate || undefined,
       assignedTo: task.assignedTo || undefined,
+      projectId: task.projectId || undefined,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
     } as ITask;
@@ -71,7 +72,7 @@ export async function getTaskById(id: string): Promise<ITask | null> {
 
 export async function createTask(data: CreateTaskInput): Promise<ITask | null> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await connectToDatabase();
@@ -89,6 +90,7 @@ export async function createTask(data: CreateTaskInput): Promise<ITask | null> {
       priority: newTask.priority,
       dueDate: newTask.dueDate || undefined,
       assignedTo: newTask.assignedTo || undefined,
+      projectId: newTask.projectId || undefined,
       createdAt: newTask.createdAt.toISOString(),
       updatedAt: newTask.updatedAt.toISOString(),
     } as ITask;
@@ -103,7 +105,7 @@ export async function updateTask(
   data: UpdateTaskInput,
 ): Promise<ITask | null> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await connectToDatabase();
@@ -124,6 +126,7 @@ export async function updateTask(
       priority: updatedTask.priority,
       dueDate: updatedTask.dueDate || undefined,
       assignedTo: updatedTask.assignedTo || undefined,
+      projectId: updatedTask.projectId || undefined,
       createdAt: updatedTask.createdAt.toISOString(),
       updatedAt: updatedTask.updatedAt.toISOString(),
     } as ITask;
@@ -135,7 +138,7 @@ export async function updateTask(
 
 export async function deleteTask(id: string): Promise<boolean> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await connectToDatabase();
@@ -157,7 +160,7 @@ export async function deleteTask(id: string): Promise<boolean> {
 
 export async function deleteTasksByStatus(status: string): Promise<number> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await connectToDatabase();
@@ -179,7 +182,7 @@ export async function moveTasksByStatus(
   toStatus: string,
 ): Promise<number> {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getSession();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await connectToDatabase();

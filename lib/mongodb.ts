@@ -24,6 +24,10 @@ async function connectToDatabase() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10, // reuse up to 10 sockets
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4, // use IPv4, skip slow IPv6 lookups
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
