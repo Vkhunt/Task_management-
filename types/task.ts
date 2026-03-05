@@ -15,7 +15,8 @@ export interface Task {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
-  dueDate?: string; // ISO date string YYYY-MM-DD
+  dueDate: string; // ISO date string YYYY-MM-DD (required)
+  assignedTo?: string;
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
 }

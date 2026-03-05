@@ -20,7 +20,6 @@ export default function FilterBar() {
 
   return (
     <div className="flex flex-wrap gap-3 items-center">
-      {/* Search */}
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
         <input
@@ -34,11 +33,9 @@ export default function FilterBar() {
         />
       </div>
 
-      {/* Filters group */}
       <div className="flex items-center gap-2">
         <SlidersHorizontal className="h-4 w-4 text-slate-500" />
 
-        {/* Status filter — dynamically built from Redux columns */}
         <select
           value={filters.status}
           onChange={(e) =>
@@ -78,7 +75,6 @@ export default function FilterBar() {
           ))}
         </select>
 
-        {/* Date Filter */}
         <input
           type="date"
           value={filters.date || ""}

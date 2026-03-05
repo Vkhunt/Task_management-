@@ -11,6 +11,7 @@ import {
   Circle,
   Timer,
   ChevronDown,
+  User,
 } from "lucide-react";
 import {
   formatDate,
@@ -69,7 +70,6 @@ const TaskCard = ({
   const router = useRouter();
   const columns = useAppSelector(selectColumns);
   const overdue = isOverdue(task.dueDate) && task.status !== "done";
-  // Fall back to a generic style for custom column statuses
   const sc = statusConfig[task.status as keyof typeof statusConfig] ?? {
     icon: Circle,
     className: "text-violet-400 bg-violet-950 border-violet-800",
@@ -112,8 +112,6 @@ const TaskCard = ({
   function handleDragStart(e: React.DragEvent) {
     if (!onDragStart) return;
     onDragStart(e, task.id);
-
-    // Defer the state change so the drag "ghost" image captures full opacity first
     setTimeout(() => setIsDragging(true), 0);
   }
 
@@ -131,9 +129,7 @@ const TaskCard = ({
   function confirmDelete(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    // Dispatch optimistic deletion
     dispatch(deleteTaskAction(task.id));
-    // Trigger server deletion implicitly allowing `router.push('/tasks/new')` UI refreshes independently
     deleteTask(task.id);
     onDelete?.();
     setShowDeleteConfirm(false);
@@ -166,9 +162,7 @@ const TaskCard = ({
           isDragging && "ring-2 ring-violet-500 shadow-2xl",
         )}
       >
-        {/* Top row: Status badge + Priority + Delete */}
         <div className="flex items-center justify-between gap-1.5 mb-2">
-          {/* Status Dropdown */}
           <div className="relative flex-1 min-w-0">
             <button
               onClick={(e) => {
@@ -242,7 +236,6 @@ const TaskCard = ({
             )}
           </div>
 
-          {/* Priority Dropdown */}
           <div className="relative shrink-0">
             <button
               onClick={(e) => {
@@ -310,7 +303,6 @@ const TaskCard = ({
             )}
           </div>
 
-          {/* Delete — visible on hover */}
           <button
             onClick={handleDeleteClick}
             className="shrink-0 rounded-lg p-1 text-slate-600 hover:bg-red-950 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
@@ -320,7 +312,6 @@ const TaskCard = ({
           </button>
         </div>
 
-        {/* Title */}
         <h3
           className={cn(
             "text-sm font-semibold text-white leading-snug line-clamp-2 group-hover:text-violet-200 transition-colors mb-1.5",
@@ -330,15 +321,19 @@ const TaskCard = ({
           {task.title}
         </h3>
 
-        {/* Description */}
         {task.description && (
           <p className="text-xs text-slate-500 line-clamp-1 leading-relaxed mb-2">
             {task.description}
           </p>
         )}
 
-        {/* Footer: date */}
         <div className="flex items-center gap-2 text-[10px] text-slate-600 mt-auto pt-1 border-t border-slate-800/60">
+          {task.assignedTo && (
+            <span className="flex items-center gap-1 text-slate-500 truncate max-w-[120px]">
+              <User className="h-3 w-3 shrink-0" />
+              <span className="truncate">{task.assignedTo}</span>
+            </span>
+          )}
           {task.dueDate && (
             <span
               className={cn(
@@ -362,7 +357,6 @@ const TaskCard = ({
         </div>
       </div>
 
-      {/* Delete Confirmation Overlay */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div

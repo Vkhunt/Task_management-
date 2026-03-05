@@ -72,15 +72,12 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  // Unwrap params (Next.js 15 async params)
   const { id } = use(params);
 
-  // 1. Try to get task instantly from Redux store — zero latency
   const taskFromStore = useAppSelector((state) =>
     state.tasks.items.find((t) => t.id === id),
   );
 
-  // 2. Local state — starts with store data (instant) or undefined (loading)
   const [task, setTask] = useState<Task | null | undefined>(
     taskFromStore ?? undefined,
   );
@@ -88,16 +85,12 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
   useEffect(() => {
     if (taskFromStore) {
-      // Already have it from store — display immediately, no spinner
       setTask(taskFromStore);
     } else {
-      // Fallback: task not in store (e.g. direct URL navigation), fetch from DB
       getTaskById(id).then((found) => setTask(found));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Keep local task in sync if Redux store updates (e.g. drag-drop from another tab)
   useEffect(() => {
     if (taskFromStore) {
       setTask(taskFromStore);
@@ -114,22 +107,21 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       status: values.status,
       priority: values.priority,
       dueDate: values.dueDate || undefined,
+      assignedTo: values.assignedTo || undefined,
       updatedAt: new Date().toISOString(),
     };
 
-    // Optimistic update in Redux — instant UI feedback
     dispatch(updateTaskAction(updatedTask));
 
-    // Navigate away immediately — no waiting for server
     router.push("/");
 
-    // Background server sync
     updateTask(id, {
       title: values.title,
       description: values.description,
       status: values.status,
       priority: values.priority,
       dueDate: values.dueDate || undefined,
+      assignedTo: values.assignedTo || undefined,
     });
   }
 
@@ -138,10 +130,8 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
   }
 
   function confirmDelete() {
-    // Optimistic remove from Redux — card disappears instantly on dashboard
     dispatch(deleteTaskAction(id));
     router.push("/");
-    // Background server sync
     deleteTask(id);
   }
 
@@ -149,7 +139,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     setShowDeleteConfirm(false);
   }
 
-  // Loading — only shown for direct URL access when task isn't in Redux store
   if (task === undefined) {
     return (
       <div className="max-w-2xl mx-auto space-y-8 animate-pulse">
@@ -174,7 +163,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
     );
   }
 
-  // Not found
   if (task === null) {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
@@ -214,7 +202,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
-      {/* Back + Delete */}
       <div className="flex items-center justify-between">
         <Link
           href="/"
@@ -232,7 +219,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         </button>
       </div>
 
-      {/* Task meta */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1.5">
@@ -286,7 +272,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         </div>
       </div>
 
-      {/* Edit form */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Edit Task</h2>
@@ -299,6 +284,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
             status: task.status as "todo" | "in-progress" | "done",
             priority: task.priority,
             dueDate: task.dueDate ?? "",
+            assignedTo: task.assignedTo ?? "",
           }}
           onSubmit={handleSubmit}
           isLoading={false}
@@ -306,7 +292,6 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
         />
       </div>
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200">

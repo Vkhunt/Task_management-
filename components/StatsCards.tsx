@@ -17,7 +17,6 @@ interface StatsCardsProps {
   tasks: Task[];
 }
 
-// Style palette for built-in columns
 const BUILT_IN_STYLES: Record<
   string,
   {
@@ -51,7 +50,6 @@ const BUILT_IN_STYLES: Record<
   },
 };
 
-// Rotating palette for custom columns so each gets a distinct color
 const CUSTOM_PALETTE = [
   {
     gradient: "from-violet-500 to-purple-600",
@@ -88,7 +86,6 @@ const CUSTOM_PALETTE = [
 export default function StatsCards({ tasks }: StatsCardsProps) {
   const columns = useAppSelector(selectColumns);
 
-  // Build per-column counts once, keyed by column id
   const countByStatus = useMemo(() => {
     const map: Record<string, number> = {};
     tasks.forEach((t) => {
@@ -97,7 +94,6 @@ export default function StatsCards({ tasks }: StatsCardsProps) {
     return map;
   }, [tasks]);
 
-  // Per-column stats cards (dynamic — reacts to addColumn / removeColumn)
   let customIndex = 0;
   const columnStats = columns.map((col) => {
     const builtIn = BUILT_IN_STYLES[col.id];
@@ -122,7 +118,6 @@ export default function StatsCards({ tasks }: StatsCardsProps) {
         gridTemplateColumns: `repeat(auto-fit, minmax(140px, 1fr))`,
       }}
     >
-      {/* Total Tasks — always first */}
       <div className="rounded-2xl border border-slate-800 bg-violet-950 p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-xs font-medium text-slate-400">
@@ -135,7 +130,6 @@ export default function StatsCards({ tasks }: StatsCardsProps) {
         <p className="text-3xl font-bold text-violet-300">{tasks.length}</p>
       </div>
 
-      {/* One card per column — updates instantly when columns change */}
       {columnStats.map(
         ({ key, label, value, icon: Icon, gradient, glow, bg, textColor }) => (
           <div

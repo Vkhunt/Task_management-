@@ -31,12 +31,10 @@ export default function DashboardPage() {
   const sortConfigs = useAppSelector((state) => state.tasks.sortConfig);
   const columns = useAppSelector(selectColumns);
   const filteredTasks: Task[] = useAppSelector(selectFilteredTasks);
-  // All tasks (unfiltered) for accurate column badge counts
   const allTasks: Task[] = useAppSelector((state) => state.tasks.items);
 
   const [showAddColumn, setShowAddColumn] = useState(false);
 
-  // Per-column sorted task lists, memoized — only recompute when deps change
   const tasksByColumn = useMemo(() => {
     const result: Record<string, Task[]> = {};
 
@@ -72,8 +70,6 @@ export default function DashboardPage() {
     return result;
   }, [columns, filteredTasks, sortConfigs]);
 
-  // Only fetch once when the user first becomes authenticated.
-  // A ref ensures re-renders (e.g. session hydration) don't trigger extra round-trips.
   const didFetch = useRef(false);
   useEffect(() => {
     if (status !== "authenticated" || didFetch.current) return;
@@ -81,7 +77,6 @@ export default function DashboardPage() {
     getTasks().then((fetched) => dispatch(setTasks(fetched)));
   }, [status, dispatch]);
 
-  // Stable drag-start callback — inline is fine; columns are memoised
   function handleDragStart(e: React.DragEvent, taskId: string) {
     e.dataTransfer.setData("taskId", taskId);
   }
@@ -122,7 +117,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 relative">
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
@@ -136,12 +130,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Stats */}
       <StatsCards tasks={allTasks} />
 
       <FilterBar />
 
-      {/* Results count row */}
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted-foreground">
           {filteredTasks.length > 0 ? (
@@ -178,7 +170,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Add Column — full-width horizontal button */}
       <button
         onClick={() => setShowAddColumn(true)}
         className="w-full flex items-center justify-center gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 px-4 py-2.5 text-sm font-medium text-slate-500 hover:border-violet-500 hover:text-violet-400 hover:bg-violet-950/20 transition-all"
@@ -187,7 +178,6 @@ export default function DashboardPage() {
         Add Column
       </button>
 
-      {/* Kanban Board — auto-fill responsive grid */}
       <div
         className="grid gap-3 pb-2"
         style={{
@@ -209,7 +199,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Add Column Modal */}
       {showAddColumn && (
         <AddColumnModal onClose={() => setShowAddColumn(false)} />
       )}

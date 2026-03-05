@@ -11,7 +11,8 @@ export const taskSchema = z.object({
     .optional(),
   status: z.string().min(1, "Status is required"),
   priority: z.enum(["low", "medium", "high"]),
-  dueDate: z.string().optional(),
+  dueDate: z.string().min(1, "Due date is required"),
+  assignedTo: z.string().max(100, "Name must be ≤ 100 characters").optional(),
 });
 
 export type TaskFormValues = z.infer<typeof taskSchema>;

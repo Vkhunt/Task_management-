@@ -8,7 +8,6 @@ import { taskSchema, type TaskFormValues } from "@/lib/validations";
 import { cn } from "@/lib/utils";
 import { useAppSelector } from "@/store/hooks";
 import { selectColumns } from "@/store/features/tasksSlice";
-import type { Task } from "@/types/task";
 
 interface TaskFormProps {
   defaultValues?: Partial<TaskFormValues>;
@@ -42,6 +41,7 @@ export default function TaskForm({
       status: "todo",
       priority: "medium",
       dueDate: "",
+      assignedTo: "",
       ...defaultValues,
     },
   });
@@ -54,6 +54,7 @@ export default function TaskForm({
         status: "todo",
         priority: "medium",
         dueDate: "",
+        assignedTo: "",
         ...defaultValues,
       });
     }
@@ -61,7 +62,6 @@ export default function TaskForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Title */}
       <div>
         <label className={labelClass}>
           Title <span className="text-red-400">*</span>
@@ -78,7 +78,6 @@ export default function TaskForm({
         {errors.title && <p className={errorClass}>{errors.title.message}</p>}
       </div>
 
-      {/* Description */}
       <div>
         <label className={labelClass}>Description</label>
         <textarea
@@ -97,7 +96,22 @@ export default function TaskForm({
         )}
       </div>
 
-      {/* Status & Priority row */}
+      <div>
+        <label className={labelClass}>Assigned To (optional)</label>
+        <input
+          {...register("assignedTo")}
+          placeholder="e.g. Alice, team-backend..."
+          className={cn(
+            inputClass,
+            errors.assignedTo &&
+              "border-red-700 focus:border-red-500 focus:ring-red-500",
+          )}
+        />
+        {errors.assignedTo && (
+          <p className={errorClass}>{errors.assignedTo.message}</p>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
           <label className={labelClass}>
@@ -144,9 +158,10 @@ export default function TaskForm({
         </div>
       </div>
 
-      {/* Due Date */}
       <div>
-        <label className={labelClass}>Due Date (optional)</label>
+        <label className={labelClass}>
+          Due Date <span className="text-red-400">*</span>
+        </label>
         <input
           type="date"
           {...register("dueDate")}
@@ -162,7 +177,6 @@ export default function TaskForm({
         )}
       </div>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={isLoading}

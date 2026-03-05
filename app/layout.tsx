@@ -24,7 +24,6 @@ export default function RootLayout({
       >
         <AuthProvider>
           <StoreProvider>
-            {/* Subtle background gradients */}
             <div className="fixed inset-0 z-[-1] bg-slate-950">
               <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-violet-900/10 blur-[120px]" />
               <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-indigo-900/10 blur-[120px]" />

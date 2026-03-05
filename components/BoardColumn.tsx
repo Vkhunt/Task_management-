@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -26,7 +26,7 @@ interface KanbanColumnProps {
   id: string;
   label: string;
   tasks: Task[];
-  taskCount: number; // full count before filtering (for badge)
+  taskCount: number;
   sortConfig: ColumnSort;
   isCustom: boolean;
   onDragStart: (e: React.DragEvent, taskId: string) => void;
@@ -44,63 +44,50 @@ const KanbanColumnInner = ({
   onDragStart,
 }: KanbanColumnProps) => {
   const dispatch = useAppDispatch();
-  // Read ALL tasks so we can find a dragged task from any column
   const allTasks = useAppSelector((state) => state.tasks.items);
 
-  // Each column tracks its own drag-over state independently
   const [isDragOver, setIsDragOver] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [openSort, setOpenSort] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-  }, []);
+  };
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    // Only fire if we're leaving the column root (not a child)
+  const handleDragLeave = (e: React.DragEvent) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setIsDragOver(false);
     }
-  }, []);
+  };
 
-  const handleDrop = useCallback(
-    async (e: React.DragEvent) => {
-      e.preventDefault();
-      setIsDragOver(false);
-      const taskId = e.dataTransfer.getData("taskId");
-      if (!taskId) return;
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const taskId = e.dataTransfer.getData("taskId");
+    if (!taskId) return;
 
-      // Look up in ALL tasks, not just this column's tasks
-      const taskToMove = allTasks.find((t) => t.id === taskId);
+    const taskToMove = allTasks.find((t) => t.id === taskId);
 
-      // No-op if already in this column
-      if (!taskToMove || taskToMove.status === id) return;
+    if (!taskToMove || taskToMove.status === id) return;
 
-      // Instant optimistic update in Redux
-      dispatch(updateTaskAction({ ...taskToMove, status: id }));
+    dispatch(updateTaskAction({ ...taskToMove, status: id }));
 
-      // Background server sync
-      const { updateTask } = await import("@/app/actions/task.actions");
-      await updateTask(taskId, { status: id });
-    },
-    [allTasks, id, dispatch],
-  );
+    const { updateTask } = await import("@/app/actions/task.actions");
+    await updateTask(taskId, { status: id });
+  };
 
-  const handleColumnDragStart = useCallback(
-    (e: React.DragEvent, taskId: string) => {
-      setIsDragging(true);
-      onDragStart(e, taskId);
-    },
-    [onDragStart],
-  );
+  const handleColumnDragStart = (e: React.DragEvent, taskId: string) => {
+    setIsDragging(true);
+    onDragStart(e, taskId);
+  };
 
-  const handleColumnDragEnd = useCallback(() => {
+  const handleColumnDragEnd = () => {
     setIsDragging(false);
-  }, []);
+  };
 
-  const toggleSortDirection = useCallback(() => {
+  const toggleSortDirection = () => {
     dispatch(
       setSortConfig({
         column: id,
@@ -110,35 +97,29 @@ const KanbanColumnInner = ({
         },
       }),
     );
-  }, [dispatch, id, sortConfig]);
+  };
 
-  const handleSortKey = useCallback(
-    (key: SortKey) => {
-      dispatch(setSortConfig({ column: id, config: { ...sortConfig, key } }));
-      setOpenSort(false);
-    },
-    [dispatch, id, sortConfig],
-  );
+  const handleSortKey = (key: SortKey) => {
+    dispatch(setSortConfig({ column: id, config: { ...sortConfig, key } }));
+    setOpenSort(false);
+  };
 
-  const handleRemove = useCallback(() => {
+  const handleRemove = () => {
     setShowRemoveConfirm(true);
-  }, []);
+  };
 
-  const confirmRemove = useCallback(() => {
-    // 1. Optimistically clear all tasks in this column from the UI
+  const confirmRemove = () => {
     dispatch(removeTasksByStatus(id));
-    // 2. Remove the column itself from the UI
     dispatch(removeColumn(id));
     setShowRemoveConfirm(false);
-    // 3. Background DB sync — permanently delete tasks from MongoDB
     import("@/app/actions/task.actions").then(({ deleteTasksByStatus }) => {
       deleteTasksByStatus(id);
     });
-  }, [dispatch, id]);
+  };
 
-  const cancelRemove = useCallback(() => {
+  const cancelRemove = () => {
     setShowRemoveConfirm(false);
-  }, []);
+  };
 
   return (
     <div
@@ -153,7 +134,6 @@ const KanbanColumnInner = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Column Header */}
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest truncate max-w-[120px]">
@@ -165,7 +145,6 @@ const KanbanColumnInner = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Sort Controls */}
           <div className="relative flex items-center">
             <div className="flex bg-muted/50 hover:bg-muted rounded-lg transition-all">
               <button
@@ -227,7 +206,6 @@ const KanbanColumnInner = ({
             )}
           </div>
 
-          {/* Remove button — only for custom columns */}
           {isCustom && (
             <button
               onClick={handleRemove}
@@ -240,7 +218,6 @@ const KanbanColumnInner = ({
         </div>
       </div>
 
-      {/* Add Task Link */}
       <Link
         href={`/tasks/new?status=${id}`}
         className="flex items-center gap-1.5 rounded-xl border border-dashed border-slate-700/60 bg-card/20 px-3 py-2 text-xs font-medium text-muted-foreground hover:border-violet-500 hover:text-violet-400 hover:bg-violet-950/20 hover:shadow-sm transition-all"
@@ -249,7 +226,6 @@ const KanbanColumnInner = ({
         Add Task
       </Link>
 
-      {/* Task List */}
       <div className="flex flex-col gap-2">
         {tasks.map((task) => (
           <TaskCard
@@ -272,7 +248,6 @@ const KanbanColumnInner = ({
           </div>
         )}
       </div>
-      {/* Remove Column Confirmation Modal */}
       {showRemoveConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -289,7 +264,6 @@ const KanbanColumnInner = ({
                   <span className="font-medium text-white">
                     &ldquo;{label}&rdquo;
                   </span>
-                  
                 </p>
               </div>
             </div>

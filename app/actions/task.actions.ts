@@ -1,10 +1,3 @@
-/**
- * "use server" is a special Next.js directive.
- * It tells Next.js that all the functions exported in this file are Server Actions.
- * Server Actions run ONLY on the backend server, never in the browser.
- * This means you can safely connect to databases or use secret API keys here
- * without exposing them to the user.
- */
 "use server";
 
 import connectToDatabase from "@/lib/mongodb";
@@ -17,22 +10,13 @@ import type {
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-/**
- * Fetches all tasks from the MongoDB database.
- * @returns An array of tasks sorted from newest to oldest.
- */
 export async function getTasks(): Promise<ITask[]> {
   try {
-    /**
-     * getServerSession runs on the server to securely get the logged-in user.
-     * We pass config from authOptions to it.
-     */
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return [];
 
     await connectToDatabase();
 
-    // Only return tasks that belong to the logged-in user's email
     const tasks = await Task.find({ userEmail: session.user.email })
       .sort({ createdAt: -1 })
       .lean();
@@ -44,6 +28,7 @@ export async function getTasks(): Promise<ITask[]> {
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate || undefined,
+      assignedTo: task.assignedTo || undefined,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
     })) as ITask[];
@@ -60,7 +45,6 @@ export async function getTaskById(id: string): Promise<ITask | null> {
 
     await connectToDatabase();
 
-    // Ensure the task belongs to the user
     const task = await Task.findOne({
       _id: id,
       userEmail: session.user.email,
@@ -75,6 +59,7 @@ export async function getTaskById(id: string): Promise<ITask | null> {
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate || undefined,
+      assignedTo: task.assignedTo || undefined,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
     } as ITask;
@@ -91,7 +76,6 @@ export async function createTask(data: CreateTaskInput): Promise<ITask | null> {
 
     await connectToDatabase();
 
-    // Automatically inject the user's email into the new task
     const newTask = await Task.create({
       ...data,
       userEmail: session.user.email,
@@ -104,6 +88,7 @@ export async function createTask(data: CreateTaskInput): Promise<ITask | null> {
       status: newTask.status,
       priority: newTask.priority,
       dueDate: newTask.dueDate || undefined,
+      assignedTo: newTask.assignedTo || undefined,
       createdAt: newTask.createdAt.toISOString(),
       updatedAt: newTask.updatedAt.toISOString(),
     } as ITask;
@@ -123,7 +108,6 @@ export async function updateTask(
 
     await connectToDatabase();
 
-    // Ensure we only update tasks owned by the current user
     const updatedTask = await Task.findOneAndUpdate(
       { _id: id, userEmail: session.user.email },
       data,
@@ -139,6 +123,7 @@ export async function updateTask(
       status: updatedTask.status,
       priority: updatedTask.priority,
       dueDate: updatedTask.dueDate || undefined,
+      assignedTo: updatedTask.assignedTo || undefined,
       createdAt: updatedTask.createdAt.toISOString(),
       updatedAt: updatedTask.updatedAt.toISOString(),
     } as ITask;
@@ -155,7 +140,6 @@ export async function deleteTask(id: string): Promise<boolean> {
 
     await connectToDatabase();
 
-    // Ensure we only delete tasks owned by the current user
     const result = await Task.findOneAndDelete({
       _id: id,
       userEmail: session.user.email,
@@ -178,7 +162,6 @@ export async function deleteTasksByStatus(status: string): Promise<number> {
 
     await connectToDatabase();
 
-    // Bulk-delete all tasks in the given column that belong to the current user
     const result = await Task.deleteMany({
       status,
       userEmail: session.user.email,

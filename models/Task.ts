@@ -7,6 +7,7 @@ export interface ITask extends Document {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate?: string;
+  assignedTo?: string;
   userEmail: string;
   createdAt: Date;
   updatedAt: Date;
@@ -29,15 +30,14 @@ const TaskSchema = new Schema<ITask>(
       required: true,
     },
     dueDate: { type: String, required: false },
+    assignedTo: { type: String, required: false },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   },
 );
 
-// Compound index: fast per-user task list queries (used by getTasks)
 TaskSchema.index({ userEmail: 1, createdAt: -1 });
-// Compound index: fast single-task lookups (used by getTaskById)
 TaskSchema.index({ _id: 1, userEmail: 1 });
 
 export default mongoose.models.Task ||

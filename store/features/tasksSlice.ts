@@ -7,8 +7,8 @@ export type SortDirection = "asc" | "desc";
 export type ColumnSort = { key: SortKey; direction: SortDirection };
 
 export interface KanbanColumn {
-  id: string; // used as task.status value
-  label: string; // display name
+  id: string;
+  label: string;
 }
 
 interface TasksState {
@@ -64,7 +64,6 @@ const tasksSlice = createSlice({
     deleteTask: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((t) => t.id !== action.payload);
     },
-    // Swap a temp-id optimistic task with the real server task once create resolves
     replaceTask: (
       state,
       action: PayloadAction<{ oldId: string; newTask: Task }>,
@@ -74,7 +73,6 @@ const tasksSlice = createSlice({
         state.items[index] = action.payload.newTask;
       }
     },
-    // Optimistically remove all tasks belonging to a deleted column
     removeTasksByStatus: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((t) => t.status !== action.payload);
     },
@@ -87,7 +85,6 @@ const tasksSlice = createSlice({
     ) => {
       state.sortConfig[action.payload.column] = action.payload.config;
     },
-    // Column management
     addColumn: (state, action: PayloadAction<KanbanColumn>) => {
       const exists = state.columns.some((c) => c.id === action.payload.id);
       if (!exists) {
@@ -96,7 +93,6 @@ const tasksSlice = createSlice({
       }
     },
     removeColumn: (state, action: PayloadAction<string>) => {
-      // Only allow removing custom (non-built-in) columns
       const builtInIds = BUILT_IN_COLUMNS.map((c) => c.id);
       if (!builtInIds.includes(action.payload)) {
         state.columns = state.columns.filter((c) => c.id !== action.payload);
@@ -105,7 +101,6 @@ const tasksSlice = createSlice({
     },
     setColumns: (state, action: PayloadAction<KanbanColumn[]>) => {
       state.columns = action.payload;
-      // Ensure sortConfig exists for all columns
       action.payload.forEach((col) => {
         if (!state.sortConfig[col.id]) {
           state.sortConfig[col.id] = { ...DEFAULT_SORT };
@@ -129,8 +124,6 @@ export const {
   removeColumn,
   setColumns,
 } = tasksSlice.actions;
-
-// ─── Memoized Selectors ───────────────────────────────────────────────────────
 
 const selectTasksItems = (state: { tasks: TasksState }) => state.tasks.items;
 const selectTasksFilters = (state: { tasks: TasksState }) =>

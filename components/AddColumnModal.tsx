@@ -55,7 +55,6 @@ export default function AddColumnModal({ onClose }: AddColumnModalProps) {
       }}
     >
       <div className="w-full max-w-sm rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600/20 border border-violet-600/30">
@@ -95,7 +94,6 @@ export default function AddColumnModal({ onClose }: AddColumnModalProps) {
             {error && <p className="mt-1.5 text-xs text-red-400">{error}</p>}
           </div>
 
-          {/* Existing columns preview */}
           {columns.length > 0 && (
             <div>
               <p className="text-xs font-medium text-slate-500 mb-1.5">

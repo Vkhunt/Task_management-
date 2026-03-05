@@ -5,8 +5,6 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./mongodb-client";
 
 export const authOptions: NextAuthOptions = {
-  // MongoDB adapter still used for persisting user accounts (OAuth sign-in),
-  // but session data is stored in a JWT cookie — zero DB call per request.
   adapter: MongoDBAdapter(clientPromise as any),
   providers: [
     GoogleProvider({
@@ -15,13 +13,10 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    // JWT strategy: session is a signed cookie — no DB lookup on every request.
-    // This eliminates one MongoDB round-trip per Server Action call.
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    // Embed user info into the JWT token at sign-in time
     async jwt({
       token,
       user,
@@ -40,7 +35,6 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
-    // Expose token data to the session object (read by getServerSession)
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session.user) {
         session.user.email = token.email as string;

@@ -3,7 +3,6 @@ import { twMerge } from "tailwind-merge";
 import { format, isValid, parseISO } from "date-fns";
 import type { Task, TaskFilters } from "@/types/task";
 
-// Utility to merge Tailwind classes
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

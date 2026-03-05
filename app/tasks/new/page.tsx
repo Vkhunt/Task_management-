@@ -25,10 +25,8 @@ function NewTaskForm() {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // 1. Generate a stable temp ID for this create operation
     const tempId = `temp-${Date.now()}`;
 
-    // 2. Dispatch optimistic task instantly — user sees it on the dashboard NOW
     const optimisticTask = {
       id: tempId,
       title: values.title,
@@ -36,28 +34,25 @@ function NewTaskForm() {
       status: values.status,
       priority: values.priority,
       dueDate: values.dueDate || undefined,
+      assignedTo: values.assignedTo || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     dispatch(addTask(optimisticTask));
 
-    // 3. Navigate away immediately — no waiting for the server
     router.push("/");
 
-    // 4. Background sync: once the server resolves, swap temp-id → real id
-    //    This prevents a "flash" or duplicate when getTasks() is called on next mount
     createTask({
       title: values.title,
       description: values.description,
       status: values.status,
       priority: values.priority,
       dueDate: values.dueDate || undefined,
+      assignedTo: values.assignedTo || undefined,
     }).then((realTask) => {
       if (realTask) {
         dispatch(replaceTask({ oldId: tempId, newTask: realTask }));
       }
-      // If createTask failed, the temp task stays visible — acceptable UX
-      // A production app would add error toast + rollback here
     });
   }
 
@@ -74,7 +69,6 @@ function NewTaskForm() {
 export default function NewTaskPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
-      {/* Back link */}
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -83,7 +77,6 @@ export default function NewTaskPage() {
         Back to Dashboard
       </Link>
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Create New Task</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -91,7 +84,6 @@ export default function NewTaskPage() {
         </p>
       </div>
 
-      {/* Form Card */}
       <div className="rounded-2xl border border-card-border bg-card p-6 sm:p-8">
         <Suspense
           fallback={<div className="h-64 animate-pulse bg-muted rounded-xl" />}
