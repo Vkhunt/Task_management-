@@ -100,7 +100,7 @@ export default function TaskForm({
         <label className={labelClass}>Assigned To (optional)</label>
         <input
           {...register("assignedTo")}
-          placeholder="e.g. Alice, team-backend..."
+          placeholder="e.g. Vaibhav"
           className={cn(
             inputClass,
             errors.assignedTo &&
