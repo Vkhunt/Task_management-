@@ -8,7 +8,7 @@ import { StoreProvider } from "@/components/StoreProvider";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Task Manager",
+  title: "TaskNova",
   description: "A modern, beautiful task management application",
 };
 

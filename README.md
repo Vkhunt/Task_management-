@@ -1,4 +1,4 @@
-# TaskFlow – Modern Task Manager
+# TaskNova – Modern Task Manager
 
 A sleek, production-quality **Task Manager** built with **Next.js 14 (App Router)**, **TypeScript**, and **Tailwind CSS**. Tasks are persisted in **localStorage** — no backend required.
 

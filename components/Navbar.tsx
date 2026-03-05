@@ -35,7 +35,7 @@ export default function Navbar() {
             <CheckSquare className="h-5 w-5 text-white" />
           </div>
           <span className="font-bold text-lg tracking-tight text-white">
-            Task<span className="text-violet-400">Flow</span>
+            Task<span className="text-violet-400">Nova</span>
           </span>
         </Link>
 

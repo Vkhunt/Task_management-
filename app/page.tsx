@@ -97,7 +97,7 @@ export default function DashboardPage() {
         </div>
         <div className="space-y-2 max-w-sm">
           <h2 className="text-2xl font-bold text-foreground">
-            Welcome to TaskFlow
+            Welcome to TaskNova
           </h2>
           <p className="text-muted-foreground">
             Please sign in with your Google account to access your personal task
