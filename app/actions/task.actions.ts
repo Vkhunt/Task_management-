@@ -173,3 +173,25 @@ export async function deleteTasksByStatus(status: string): Promise<number> {
     return 0;
   }
 }
+
+export async function moveTasksByStatus(
+  fromStatus: string,
+  toStatus: string,
+): Promise<number> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) throw new Error("Unauthorized");
+
+    await connectToDatabase();
+
+    const result = await Task.updateMany(
+      { status: fromStatus, userEmail: session.user.email },
+      { status: toStatus },
+    );
+
+    return result.modifiedCount ?? 0;
+  } catch (error) {
+    console.error("Failed to move tasks by status:", error);
+    return 0;
+  }
+}

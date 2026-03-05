@@ -17,7 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   setSortConfig,
   removeColumn,
-  removeTasksByStatus,
+  moveTasksToStatus,
   updateTask as updateTaskAction,
 } from "@/store/features/tasksSlice";
 import type { SortKey, ColumnSort } from "@/store/features/tasksSlice";
@@ -50,6 +50,8 @@ const KanbanColumnInner = ({
   const [isDragging, setIsDragging] = useState(false);
   const [openSort, setOpenSort] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+
+  const columnTaskCount = allTasks.filter((t) => t.status === id).length;
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -108,13 +110,14 @@ const KanbanColumnInner = ({
     setShowRemoveConfirm(true);
   };
 
-  const confirmRemove = () => {
-    dispatch(removeTasksByStatus(id));
+  const confirmRemove = async () => {
+    // 1. Instantly move tasks to Done in Redux, then remove the column
+    dispatch(moveTasksToStatus({ fromStatus: id, toStatus: "done" }));
     dispatch(removeColumn(id));
     setShowRemoveConfirm(false);
-    import("@/app/actions/task.actions").then(({ deleteTasksByStatus }) => {
-      deleteTasksByStatus(id);
-    });
+    // 2. Persist to DB: update all tasks' status then remove the column ref
+    const { moveTasksByStatus } = await import("@/app/actions/task.actions");
+    await moveTasksByStatus(id, "done");
   };
 
   const cancelRemove = () => {
@@ -263,8 +266,21 @@ const KanbanColumnInner = ({
                   Remove{" "}
                   <span className="font-medium text-white">
                     &ldquo;{label}&rdquo;
-                  </span>
+                  </span>{" "}
+                  column?
                 </p>
+                {columnTaskCount > 0 && (
+                  <p className="mt-2 text-xs font-medium text-amber-400 bg-amber-950/50 border border-amber-900/50 rounded-lg px-3 py-2">
+                    📦 {columnTaskCount}{" "}
+                    {columnTaskCount === 1 ? "task" : "tasks"} will be moved to{" "}
+                    <span className="font-bold text-emerald-400">Done</span>.
+                  </p>
+                )}
+                {columnTaskCount === 0 && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    This column is empty.
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex items-center justify-end gap-3">

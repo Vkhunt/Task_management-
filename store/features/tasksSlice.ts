@@ -76,6 +76,16 @@ const tasksSlice = createSlice({
     removeTasksByStatus: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((t) => t.status !== action.payload);
     },
+    moveTasksToStatus: (
+      state,
+      action: PayloadAction<{ fromStatus: string; toStatus: string }>,
+    ) => {
+      state.items = state.items.map((t) =>
+        t.status === action.payload.fromStatus
+          ? { ...t, status: action.payload.toStatus }
+          : t,
+      );
+    },
     setFilters: (state, action: PayloadAction<TaskFilters>) => {
       state.filters = action.payload;
     },
@@ -118,6 +128,7 @@ export const {
   deleteTask,
   replaceTask,
   removeTasksByStatus,
+  moveTasksToStatus,
   setFilters,
   setSortConfig,
   addColumn,
