@@ -106,7 +106,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       description: values.description || "",
       status: values.status,
       priority: values.priority,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
       updatedAt: new Date().toISOString(),
     };
@@ -120,7 +120,7 @@ export default function TaskDetailPage({ params }: TaskDetailPageProps) {
       description: values.description,
       status: values.status,
       priority: values.priority,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
     });
   }

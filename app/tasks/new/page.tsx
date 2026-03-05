@@ -33,7 +33,7 @@ function NewTaskForm() {
       description: values.description || "",
       status: values.status,
       priority: values.priority,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -47,7 +47,7 @@ function NewTaskForm() {
       description: values.description,
       status: values.status,
       priority: values.priority,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate,
       assignedTo: values.assignedTo || undefined,
     }).then((realTask) => {
       if (realTask) {
