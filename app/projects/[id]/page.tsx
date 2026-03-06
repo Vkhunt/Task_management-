@@ -16,6 +16,7 @@ import {
   setTasks,
   selectFilteredTasks,
   selectColumns,
+  removeTasksByProjectId,
 } from "@/store/features/tasksSlice";
 import type { ColumnSort } from "@/store/features/tasksSlice";
 import { setProjects, removeProject } from "@/store/features/projectsSlice";
@@ -114,6 +115,7 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
 
   async function confirmDeleteProject() {
     dispatch(removeProject(projectId));
+    dispatch(removeTasksByProjectId(projectId));
     await deleteProject(projectId);
     router.push("/projects");
   }
@@ -221,23 +223,45 @@ export default function ProjectBoardPage({ params }: ProjectBoardProps) {
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-950 border border-red-900">
+            <div className="flex items-start gap-4 mb-5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-950 border border-red-900">
                 <AlertCircle className="h-5 w-5 text-red-500" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-base font-semibold text-white">
                   Delete Project
                 </h3>
-                <p className="mt-1.5 text-sm text-slate-400">
+                <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">
                   Delete{" "}
-                  <span className="font-medium text-white">
+                  <span className="font-semibold text-white">
                     &ldquo;{project?.name}&rdquo;
                   </span>
-                  ? Tasks inside will remain in your Dashboard.
+                  ?{" "}
+                  {projectAllTasks.length > 0 ? (
+                    <>
+                      This will permanently delete{" "}
+                      <span className="font-semibold text-red-400">
+                        {projectAllTasks.length} task
+                        {projectAllTasks.length !== 1 ? "s" : ""}
+                      </span>{" "}
+                      inside it.
+                    </>
+                  ) : (
+                    "This project has no tasks."
+                  )}
                 </p>
               </div>
             </div>
+
+            {projectAllTasks.length > 0 && (
+              <div className="mb-5 rounded-xl border border-red-900/50 bg-red-950/40 px-4 py-3">
+                <p className="text-xs text-red-300 font-medium">
+                  ⚠ This action cannot be undone. All tasks in this project will
+                  be permanently deleted.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
